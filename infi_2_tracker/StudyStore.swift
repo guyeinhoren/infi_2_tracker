@@ -34,6 +34,7 @@ final class StudyStore {
     func toggleExpanded(_ unitId: String) {
         guard let i = units.firstIndex(where: { $0.id == unitId }) else { return }
         units[i].isExpanded.toggle()
+        save()
     }
 
     private func save() {
@@ -174,17 +175,17 @@ final class StudyStore {
 
     static func makeDefaultExams() -> [ExamFile] {
         [
-            ExamFile(id: "mid1",    displayName: "מבחן אמצע 1",  fileName: "מבחן אמצע 1.pdf"),
-            ExamFile(id: "mid2",    displayName: "מבחן אמצע 2",  fileName: "מבחן אמצע 2.pdf"),
-            ExamFile(id: "moed_a",  displayName: "מועד א",        fileName: "מבחן מועד א.pdf"),
-            ExamFile(id: "moed_a2", displayName: "מועד א (2)",    fileName: "מבחן מועד א-2.pdf"),
-            ExamFile(id: "moed_a3", displayName: "מועד א (3)",    fileName: "מבחן מועד א-3.pdf"),
-            ExamFile(id: "moed_b",  displayName: "מועד ב",        fileName: "מבחן מועד ב.pdf"),
-            ExamFile(id: "moed_b2", displayName: "מועד ב (2)",    fileName: "מבחן מועד ב-2.pdf"),
-            ExamFile(id: "moed_b3", displayName: "מועד ב (3)",    fileName: "מבחן מועד ב-3.pdf"),
-            ExamFile(id: "moed_c",  displayName: "מועד ג",        fileName: "מבחן מועד ג.pdf"),
-            ExamFile(id: "moed_c2", displayName: "מועד ג (2)",    fileName: "מבחן מועד ג-2.pdf"),
-            ExamFile(id: "moed_c3", displayName: "מועד ג (3)",    fileName: "מבחן מועד ג-3.pdf"),
+            ExamFile(id: "mid1",      displayName: "מבחן אמצע 1",     fileName: "מבחן אמצע 1.pdf"),
+            ExamFile(id: "mid2",      displayName: "מבחן אמצע 2",     fileName: "מבחן אמצע 2.pdf"),
+            ExamFile(id: "tashpd_a",  displayName: "תשפ״ד מועד א׳",   fileName: "מבחן תשפ״ד א׳.pdf"),
+            ExamFile(id: "tashpd_b",  displayName: "תשפ״ד מועד ב׳",   fileName: "מבחן תשפ״ד ב׳.pdf"),
+            ExamFile(id: "tashpd_c",  displayName: "תשפ״ד מועד ג׳",   fileName: "מבחן תשפ״ד ג׳.pdf"),
+            ExamFile(id: "tashph_a",  displayName: "תשפ״ה מועד א׳",   fileName: "מבחן תשפ״ה א׳.pdf"),
+            ExamFile(id: "tashph_b",  displayName: "תשפ״ה מועד ב׳",   fileName: "מבחן תשפ״ה ב׳.pdf"),
+            ExamFile(id: "tashph_c",  displayName: "תשפ״ה מועד ג׳",   fileName: "מבחן תשפ״ה ג׳.pdf"),
+            ExamFile(id: "tashpv_a",  displayName: "תשפ״ו מועד א׳",   fileName: "מבחן תשפ״ו א׳.pdf"),
+            ExamFile(id: "tashpv_b",  displayName: "תשפ״ו מועד ב׳",   fileName: "מבחן תשפ״ו ב׳.pdf"),
+            ExamFile(id: "tashpv_c",  displayName: "תשפ״ו מועד ג׳",   fileName: "מבחן תשפ״ו ג׳.pdf"),
         ]
     }
 }

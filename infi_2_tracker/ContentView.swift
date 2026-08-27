@@ -5,9 +5,9 @@ struct ContentView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 22) {
+            VStack(spacing: 24) {
                 appHeader
-                    .padding(.top, 8)
+                    .padding(.top, 12)
 
                 CountdownView(targetDate: examDate)
                     .padding(.horizontal)
@@ -19,46 +19,56 @@ struct ContentView: View {
 
                 ExamsSectionView(store: store)
                     .padding(.horizontal)
-                    .padding(.bottom, 32)
+                    .padding(.bottom, 36)
             }
         }
-        .background(backgroundGradient)
+        .background(adaptiveBackground)
         .environment(\.layoutDirection, .rightToLeft)
     }
 
     // MARK: - Header
 
     private var appHeader: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 8) {
             ZStack {
                 Circle()
                     .fill(
-                        RadialGradient(
-                            colors: [.blue.opacity(0.6), .indigo.opacity(0.3)],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 40
-                        )
-                    )
-                    .frame(width: 80, height: 80)
-                    .blur(radius: 12)
-                Image(systemName: "sum")
-                    .font(.system(size: 38, weight: .light))
-                    .foregroundStyle(
                         LinearGradient(
-                            colors: [.white, .cyan],
+                            colors: [.blue.opacity(0.4), .cyan.opacity(0.2)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
+                    .frame(width: 84, height: 84)
+                    .blur(radius: 16)
+
+                ZStack {
+                    Circle()
+                        .fill(.ultraThinMaterial)
+                    Image(systemName: "sum")
+                        .font(.system(size: 36, weight: .light))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.blue, .cyan],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                }
+                .frame(width: 76, height: 76)
+                .overlay(
+                    Circle()
+                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(0.08), radius: 10, x: 0, y: 5)
             }
 
             Text("חדווא 2")
-                .font(.largeTitle.bold())
+                .font(.system(size: 32, weight: .bold, design: .rounded))
                 .foregroundStyle(.primary)
 
             Text("מעקב למידה למבחן")
-                .font(.subheadline)
+                .font(.subheadline.weight(.medium))
                 .foregroundStyle(.secondary)
         }
     }
@@ -66,14 +76,14 @@ struct ContentView: View {
     // MARK: - Study Units Section
 
     private var studyUnitsSection: some View {
-        VStack(alignment: .trailing, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             SectionHeader(
                 "יחידות לימוד",
                 badge: "\(store.completedSubTasks)/\(store.totalSubTasks) הושלמו"
             )
             .padding(.horizontal)
 
-            VStack(spacing: 8) {
+            VStack(spacing: 10) {
                 ForEach(store.units) { unit in
                     TaskGroupRowView(store: store, unit: unit)
                 }
@@ -84,21 +94,42 @@ struct ContentView: View {
 
     // MARK: - Background
 
-    private var backgroundGradient: some View {
-        LinearGradient(
-            stops: [
-                .init(color: Color(red: 0.04, green: 0.07, blue: 0.22), location: 0.0),
-                .init(color: Color(red: 0.07, green: 0.04, blue: 0.18), location: 0.45),
-                .init(color: Color(red: 0.05, green: 0.08, blue: 0.20), location: 1.0),
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        .ignoresSafeArea()
+    @ViewBuilder
+    private var adaptiveBackground: some View {
+        ZStack {
+            #if os(iOS)
+            Color(uiColor: .systemGroupedBackground)
+                .ignoresSafeArea()
+            #else
+            Color(nsColor: .windowBackgroundColor)
+                .ignoresSafeArea()
+            #endif
+
+            // Ambient backdrop glows for Liquid Glass design
+            GeometryReader { proxy in
+                Circle()
+                    .fill(Color.blue.opacity(0.12))
+                    .frame(width: 320, height: 320)
+                    .blur(radius: 60)
+                    .position(x: proxy.size.width * 0.8, y: 100)
+
+                Circle()
+                    .fill(Color.indigo.opacity(0.1))
+                    .frame(width: 360, height: 360)
+                    .blur(radius: 80)
+                    .position(x: proxy.size.width * 0.2, y: proxy.size.height * 0.6)
+            }
+            .ignoresSafeArea()
+        }
     }
 }
 
-#Preview {
+#Preview("בהיר", traits: .fixedLayout(width: 480, height: 900)) {
     ContentView()
-        .frame(width: 480, height: 900)
+        .preferredColorScheme(.light)
+}
+
+#Preview("כהה", traits: .fixedLayout(width: 480, height: 900)) {
+    ContentView()
+        .preferredColorScheme(.dark)
 }

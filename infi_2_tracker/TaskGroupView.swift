@@ -8,63 +8,87 @@ import AppKit
 struct TaskGroupRowView: View {
     var store: StudyStore
     let unit: StudyUnit
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(spacing: 0) {
             groupHeader
+
             if unit.isExpanded {
                 Divider()
                     .padding(.horizontal, 14)
+                    .opacity(0.4)
+
                 subTasksList
             }
         }
-        .background(.regularMaterial, in: .rect(cornerRadius: 18))
+        .background(
+            colorScheme == .dark
+                ? AnyShapeStyle(.regularMaterial)
+                : AnyShapeStyle(Color.white),
+            in: RoundedRectangle(cornerRadius: 20)
+        )
+        .shadow(
+            color: colorScheme == .dark ? .clear : Color.black.opacity(0.04),
+            radius: 8,
+            x: 0,
+            y: 4
+        )
         .overlay(
-            RoundedRectangle(cornerRadius: 18)
+            RoundedRectangle(cornerRadius: 20)
                 .stroke(
-                    unit.progress >= 1.0 ? Color.green.opacity(0.5) : Color.white.opacity(0.08),
+                    unit.progress >= 1.0
+                        ? Color.green.opacity(0.5)
+                        : (colorScheme == .dark ? Color.white.opacity(0.15) : Color.black.opacity(0.06)),
                     lineWidth: 1
                 )
         )
+        .clipped()
     }
 
     private var groupHeader: some View {
         Button {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.78)) {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
                 store.toggleExpanded(unit.id)
             }
         } label: {
             HStack(spacing: 12) {
-                // Expand chevron
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .rotationEffect(.degrees(unit.isExpanded ? 90 : 0))
-                    .animation(.spring(response: 0.35), value: unit.isExpanded)
-
-                // Progress ring
-                CircularRingView(
-                    progress: unit.progress,
-                    color: unit.progress >= 1.0 ? .green : .blue,
-                    lineWidth: 4,
-                    size: 42,
-                    label: nil
-                )
-
-                // Unit info
-                VStack(alignment: .trailing, spacing: 2) {
+                // Unit Title & Number (Right side)
+                VStack(alignment: .leading, spacing: 3) {
                     Text(unit.topic)
-                        .font(.headline)
+                        .font(.headline.weight(.bold))
                         .foregroundStyle(.primary)
-                        .multilineTextAlignment(.trailing)
-                    Text("יחידה \(unit.unitNumber)  •  \(unit.completedCount)/\(unit.totalCount)")
-                        .font(.caption)
+                        .multilineTextAlignment(.leading)
+                    Text("יחידה \(unit.unitNumber)")
+                        .font(.caption.weight(.medium))
                         .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.leading)
                 }
-                .frame(maxWidth: .infinity, alignment: .trailing)
+
+                Spacer()
+
+                // Badge (completed / total count)
+                Text("\(unit.completedCount)/\(unit.totalCount)")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(unit.progress >= 1.0 ? .green : .secondary)
+                    .monospacedDigit()
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(
+                        unit.progress >= 1.0
+                            ? Color.green.opacity(0.15)
+                            : Color.primary.opacity(0.06),
+                        in: Capsule()
+                    )
+
+                // Chevron indicating expansion (Left side)
+                Image(systemName: "chevron.left")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.secondary)
+                    .rotationEffect(.degrees(unit.isExpanded ? -90 : 0))
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -76,13 +100,13 @@ struct TaskGroupRowView: View {
                 SubTaskRowView(store: store, unitId: unit.id, task: task)
                 if task.id != unit.subTasks.last?.id {
                     Divider()
-                        .padding(.leading, 48)
-                        .padding(.trailing, 14)
+                        .padding(.horizontal, 16)
+                        .opacity(0.3)
                 }
             }
         }
-        .padding(.bottom, 6)
-        .transition(.opacity.combined(with: .move(edge: .top)))
+        .padding(.vertical, 4)
+        .transition(.opacity.combined(with: .scale(scale: 0.98, anchor: .top)))
     }
 }
 
@@ -94,8 +118,8 @@ struct SubTaskRowView: View {
     let task: SubTask
 
     var body: some View {
-        HStack(spacing: 10) {
-            // Completion toggle
+        HStack(spacing: 12) {
+            // Checkmark completion toggle
             Button {
                 withAnimation(.spring(response: 0.28, dampingFraction: 0.7)) {
                     store.toggleSubTask(unitId: unitId, subTaskId: task.id)
@@ -108,50 +132,46 @@ struct SubTaskRowView: View {
             }
             .buttonStyle(.plain)
 
-            // Type icon badge
-            ZStack {
-                RoundedRectangle(cornerRadius: 7)
-                    .fill(task.type.color.opacity(0.15))
-                    .frame(width: 28, height: 28)
-                Image(systemName: task.type.sfSymbol)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(task.type.color)
-            }
-
-            // Name
-            Text(task.displayName)
-                .font(.subheadline)
-                .foregroundStyle(task.isCompleted ? .secondary : .primary)
-                .strikethrough(task.isCompleted, color: .secondary)
-                .frame(maxWidth: .infinity, alignment: .trailing)
-                .lineLimit(2)
-                .multilineTextAlignment(.trailing)
-
-            // Open button
+            // Tappable Task Type Icon
             if let url = task.openURL {
                 Button {
                     openItem(url)
                 } label: {
-                    ZStack {
-                        Circle()
-                            .fill(task.type.color.opacity(0.15))
-                            .frame(width: 32, height: 32)
-                        Image(systemName: task.type.openIcon)
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(task.type.color)
-                    }
+                    typeBadge
                 }
                 .buttonStyle(.plain)
                 .help(task.type == .computerExercise ? "פתח תרגול ממוחשב בדפדפן" : "פתח קובץ PDF")
+            } else {
+                typeBadge
             }
+
+            // Task display name
+            Text(task.displayName)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(task.isCompleted ? .secondary : .primary)
+                .strikethrough(task.isCompleted, color: .secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 9)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
         .background(
             task.isCompleted
-                ? Color.green.opacity(0.06)
+                ? Color.green.opacity(0.08)
                 : Color.clear
         )
+    }
+
+    private var typeBadge: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(task.type.color.opacity(0.18))
+                .frame(width: 32, height: 32)
+            Image(systemName: task.type.sfSymbol)
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(task.type.color)
+        }
     }
 
     private func openItem(_ url: URL) {

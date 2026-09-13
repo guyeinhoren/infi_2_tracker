@@ -1,17 +1,17 @@
-//
-//  infi_2_trackerApp.swift
-//  infi_2_tracker
-//
-//  Created by גיא אינהורן on 27/08/2026.
-//
-
 import SwiftUI
 
 @main
 struct infi_2_trackerApp: App {
+    @State private var store = StudyStore()
+
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        WindowGroup("חדווא 2") {
+            ContentView(store: store)
         }
+
+        WindowGroup("תכנון שבועי", id: "weekly-calendar") {
+            CalendarWindowView(store: store)
+        }
+        .defaultSize(width: 920, height: 560)
     }
 }
